@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { Award, Truck, Users, Heart, Mail, Phone, MapPin, ShoppingBag, Star, Shield } from 'lucide-react';
+import { serverFetch } from '@/lib/server-fetch';
+
+export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 async function getSettings() {
-  try {
-    const res = await fetch(`${API_URL}/api/settings`, { cache: 'no-store' });
-    return res.ok ? (await res.json()).settings : null;
-  } catch { return null; }
+  const data = await serverFetch(`${API_URL}/api/settings`, { cache: 'no-store' });
+  return data?.settings || null;
 }
 
 export const metadata = { title: 'About Us' };

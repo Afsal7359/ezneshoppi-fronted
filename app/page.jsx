@@ -5,27 +5,23 @@ import ProductCard from '@/components/store/ProductCard';
 import CountdownBanner from '@/components/store/CountdownBanner';
 import CategoryGrid from '@/components/store/CategoryGrid';
 import HeroBanner from '@/components/store/HeroBanner';
+import { serverFetch } from '@/lib/server-fetch';
+
+// Force dynamic so Next.js doesn't try to SSG this at build time
+// (settings uses cache:'no-store' which requires a live backend)
+export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-async function fetchJSON(path, opts = {}) {
-  try {
-    const res = await fetch(`${API_URL}${path}`, { next: { revalidate: 120 }, ...opts });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+const f = (path, opts) => serverFetch(`${API_URL}${path}`, opts);
 
 export default async function HomePage() {
   const [settingsRes, productsRes, newArrivalsRes, categoriesRes, blogRes] = await Promise.all([
-    // settings: no-store — picks up admin changes immediately (no revalidate conflict)
-    fetchJSON('/api/settings', { cache: 'no-store', next: undefined }),
-    fetchJSON('/api/products?featured=true&limit=8'),
-    fetchJSON('/api/products?newArrival=true&limit=8'),
-    fetchJSON('/api/categories?active=true'),
-    fetchJSON('/api/blog?limit=3'),
+    f('/api/settings',                      { cache: 'no-store' }),
+    f('/api/products?featured=true&limit=8',  { next: { revalidate: 120 } }),
+    f('/api/products?newArrival=true&limit=8', { next: { revalidate: 120 } }),
+    f('/api/categories?active=true',           { next: { revalidate: 120 } }),
+    f('/api/blog?limit=3',                     { next: { revalidate: 120 } }),
   ]);
 
   const settings = settingsRes?.settings;

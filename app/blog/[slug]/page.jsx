@@ -1,14 +1,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { serverFetch } from '@/lib/server-fetch';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 async function getBlog(slug) {
-  try {
-    const res = await fetch(`${API_URL}/api/blog/${slug}`, { next: { revalidate: 60 } });
-    return res.ok ? (await res.json()).blog : null;
-  } catch { return null; }
+  const data = await serverFetch(`${API_URL}/api/blog/${slug}`, { next: { revalidate: 60 } });
+  return data?.blog || null;
 }
 
 export default async function BlogPostPage({ params }) {

@@ -1,8 +1,10 @@
+import { cache } from 'react';
 import './globals.css';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import AuthBoot from '@/components/layout/AuthBoot';
+import { serverFetch } from '@/lib/server-fetch';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -11,23 +13,22 @@ const jakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-async function getSettings() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/settings`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.settings;
-  } catch {
-    return null;
-  }
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+// cache() deduplicates: generateMetadata + RootLayout both call this,
+// but it only fires ONE fetch per request.
+const getSettings = cache(async () => {
+  return serverFetch(`${API_URL}/api/settings`, { cache: 'no-store' });
+});
 
 export async function generateMetadata() {
-  const s = await getSettings();
+  const data = await getSettings();
+  const s = data?.settings || data; // handle both response shapes
   return {
-    title: { default: s?.siteName || 'ezoneshoppi', template: `%s | ${s?.siteName || 'ezoneshoppi'}` },
+    title: {
+      default: s?.siteName || 'ezoneshoppi',
+      template: `%s | ${s?.siteName || 'ezoneshoppi'}`,
+    },
     description: s?.tagline || s?.seo?.metaDescription || 'Premium electronics store',
     keywords: s?.seo?.metaKeywords || [],
     openGraph: { images: [s?.seo?.ogImage].filter(Boolean) },
@@ -35,7 +36,8 @@ export async function generateMetadata() {
 }
 
 export default async function RootLayout({ children }) {
-  const settings = await getSettings();
+  const data = await getSettings();
+  const settings = data?.settings || data;
   return (
     <html lang="en" className={jakarta.variable}>
       <body suppressHydrationWarning>

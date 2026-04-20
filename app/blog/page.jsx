@@ -1,13 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { serverFetch } from '@/lib/server-fetch';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 async function getBlogs() {
-  try {
-    const res = await fetch(`${API_URL}/api/blog?limit=20`, { next: { revalidate: 60 } });
-    return res.ok ? (await res.json()).items : [];
-  } catch { return []; }
+  const data = await serverFetch(`${API_URL}/api/blog?limit=20`, { next: { revalidate: 60 } });
+  return data?.items || [];
 }
 
 export const metadata = { title: 'Blog' };
