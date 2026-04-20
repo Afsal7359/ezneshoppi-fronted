@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SlidersHorizontal, X, ChevronDown, Search, Tag } from 'lucide-react';
 import ProductCard from '@/components/store/ProductCard';
@@ -15,7 +15,7 @@ function useDebounce(value, ms) {
   return v;
 }
 
-export default function ShopPage() {
+function ShopContent() {
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -371,5 +371,30 @@ export default function ShopPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* Suspense wrapper — required by Next.js 14 for useSearchParams() */
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="container-x py-10">
+        <div className="h-8 bg-ink-900/[0.04] rounded-xl w-48 mb-8 animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-ink-900/[0.04] animate-pulse overflow-hidden">
+              <div className="aspect-square" />
+              <div className="p-4 space-y-2">
+                <div className="h-3 bg-ink-900/[0.08] rounded-full w-1/2" />
+                <div className="h-4 bg-ink-900/[0.08] rounded-full w-4/5" />
+                <div className="h-9 bg-ink-900/[0.08] rounded-xl mt-3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }

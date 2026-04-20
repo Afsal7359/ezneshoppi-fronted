@@ -20,7 +20,8 @@ async function fetchJSON(path, opts = {}) {
 
 export default async function HomePage() {
   const [settingsRes, productsRes, newArrivalsRes, categoriesRes, blogRes] = await Promise.all([
-    fetchJSON('/api/settings', { cache: 'no-store' }),
+    // settings: no-store — picks up admin changes immediately (no revalidate conflict)
+    fetchJSON('/api/settings', { cache: 'no-store', next: undefined }),
     fetchJSON('/api/products?featured=true&limit=8'),
     fetchJSON('/api/products?newArrival=true&limit=8'),
     fetchJSON('/api/categories?active=true'),
