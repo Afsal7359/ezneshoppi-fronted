@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+html, body { scroll-behavior: smooth; }
+body {
+  @apply bg-white text-ink-900 antialiased;
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  overflow-x: hidden;
+}
+
+/* ── Layout ───────────────────────────────────────────── */
+.container-x { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
+
+/* ── Buttons ──────────────────────────────────────────── */
+.btn         { @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-200; }
+.btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700 shadow-lift hover:shadow-xl active:scale-[0.98]; }
+.btn-dark    { @apply btn bg-ink-900 text-white hover:bg-ink-800 active:scale-[0.98]; }
+.btn-outline { @apply btn border border-ink-900/10 bg-white hover:bg-ink-900 hover:text-white; }
+.btn-ghost   { @apply btn text-ink-700 hover:bg-ink-900/5; }
+
+/* ── Cards & chips ────────────────────────────────────── */
+.card { @apply bg-white rounded-2xl shadow-card hover:shadow-lift transition-all duration-300; }
+.chip { @apply inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full; }
+
+/* ── Form: base input ─────────────────────────────────── */
+.field {
+  @apply w-full rounded-xl border border-slate-200 bg-white
+         px-3.5 py-2.5
+         text-sm text-ink-900 font-normal leading-snug
+         placeholder:text-slate-400
+         focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100
+         disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed
+         transition-all duration-200;
+}
+
+/* Icon-left / icon-right variants
+   Use !important so these always override the px-3.5 from .field */
+.field-il  { @apply field; padding-left:  2.5rem !important; }
+.field-ir  { @apply field; padding-right: 2.5rem !important; }
+.field-ilr { @apply field; padding-left:  2.5rem !important; padding-right: 2.5rem !important; }
+
+/* Field wrapper — positions the icon absolutely */
+.field-wrap { @apply relative w-full; }
+
+.field-wrap .icon-l {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400;
+  /* size set by caller (e.g. size={16} on lucide or text-xs for text badge) */
+}
+.field-wrap .icon-r {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-slate-400;
+}
+
+/* Textarea shares field styles but overrides height */
+textarea.field { @apply leading-relaxed; }
+
+.label { @apply text-sm font-medium text-ink-700 mb-1.5 block; }
+
+/* ── Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Number inputs — hide browser spinners ────────────── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ── Marquee animation ────────────────────────────────── */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { display: flex; width: max-content; animation: marquee 30s linear infinite; }
+
+/* ── Grid dot pattern ─────────────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Fade-up for dropdowns ────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeUp { animation: fadeUp 0.15s ease-out; }
