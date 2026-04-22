@@ -28,10 +28,13 @@ export default function AdminLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [siteName, setSiteName] = useState('ezoneshoppi');
 
+  const isLoginPage = pathname === '/admin/login';
+
   useEffect(() => {
-    if (!token) return router.push('/login?redirect=' + pathname);
+    if (isLoginPage) return;
+    if (!token) return router.push('/admin/login');
     if (user && user.role !== 'admin') router.push('/');
-  }, [token, user, router, pathname]);
+  }, [token, user, router, pathname, isLoginPage]);
 
   useEffect(() => {
     API.settings()
@@ -40,6 +43,9 @@ export default function AdminLayout({ children }) {
   }, []);
 
   useEffect(() => setMobileOpen(false), [pathname]);
+
+  // Render login page without admin chrome
+  if (isLoginPage) return <>{children}</>;
 
   if (!user || user.role !== 'admin') {
     return <div className="h-screen grid place-items-center">Checking access…</div>;

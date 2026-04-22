@@ -6,7 +6,7 @@ import Footer from './Footer';
 export default function ConditionalLayout({ settings, children }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
-  const isAuth = pathname === '/login' || pathname === '/register';
+  const isAuth = pathname === '/login' || pathname === '/register' || pathname === '/sso-callback';
   const showLayout = !isAdmin && !isAuth;
 
   if (showLayout) {

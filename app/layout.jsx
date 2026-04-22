@@ -15,20 +15,15 @@ const jakarta = Plus_Jakarta_Sans({
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// cache() deduplicates: generateMetadata + RootLayout both call this,
-// but it only fires ONE fetch per request.
 const getSettings = cache(async () => {
   return serverFetch(`${API_URL}/api/settings`, { cache: 'no-store' });
 });
 
 export async function generateMetadata() {
   const data = await getSettings();
-  const s = data?.settings || data; // handle both response shapes
+  const s = data?.settings || data;
   return {
-    title: {
-      default: s?.siteName || 'ezoneshoppi',
-      template: `%s | ${s?.siteName || 'ezoneshoppi'}`,
-    },
+    title: { default: s?.siteName || 'ezoneshoppi', template: `%s | ${s?.siteName || 'ezoneshoppi'}` },
     description: s?.tagline || s?.seo?.metaDescription || 'Premium electronics store',
     keywords: s?.seo?.metaKeywords || [],
     openGraph: { images: [s?.seo?.ogImage].filter(Boolean) },

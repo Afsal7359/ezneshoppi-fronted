@@ -10,6 +10,6 @@ export default function AuthBoot() {
     API.me()
       .then(({ data }) => setUser(data.user))
       .catch(() => logout());
-  }, [token, setUser, logout]);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }

@@ -1,137 +1,93 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock, Phone, Eye, EyeOff } from 'lucide-react';
-import { API } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/store';
+import { API } from '@/lib/api';
 import toast from 'react-hot-toast';
+
+function useGoogleScript() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.google?.accounts) { setReady(true); return; }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true; s.defer = true;
+    s.onload = () => setReady(true);
+    document.head.appendChild(s);
+  }, []);
+  return ready;
+}
+
+function GoogleButton({ onSuccess }) {
+  const googleReady = useGoogleScript();
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = useCallback(() => {
+    if (!googleReady || !window.google?.accounts) {
+      toast.error('Google is loading, try again in a moment');
+      return;
+    }
+    setLoading(true);
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      scope: 'openid email profile',
+      callback: async (resp) => {
+        if (resp.error) { toast.error('Google sign-in cancelled'); setLoading(false); return; }
+        try {
+          const { data } = await API.googleAuth(resp.access_token);
+          onSuccess(data);
+        } catch (err) {
+          toast.error(err?.response?.data?.message || 'Google sign-up failed');
+          setLoading(false);
+        }
+      },
+    });
+    client.requestAccessToken();
+  }, [googleReady, onSuccess]);
+
+  return (
+    <button type="button" onClick={handleClick} disabled={loading}
+      className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-[0.98] transition-all font-medium text-sm text-gray-700 shadow-sm disabled:opacity-60">
+      {loading ? <Loader2 size={18} className="animate-spin" /> : (
+        <svg width="18" height="18" viewBox="0 0 48 48" className="shrink-0">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+      )}
+      {loading ? 'Signing up…' : 'Sign up with Google'}
+    </button>
+  );
+}
 
 export default function RegisterPage() {
   const router = useRouter();
   const { setAuth } = useAuth();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
-  const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (form.password.length < 6) return toast.error('Password must be 6+ characters');
-    setLoading(true);
-    try {
-      const { data } = await API.register(form);
-      setAuth(data.user, data.token);
-      toast.success('Account created!');
-      router.push('/');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
+  const onAuthSuccess = (data) => {
+    setAuth(data.user, data.token);
+    toast.success('Welcome to ezoneshoppi!');
+    router.push('/');
   };
 
   return (
     <div className="min-h-screen grid place-items-center py-10 px-4 bg-gradient-to-br from-peach-50 to-white">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 grid place-items-center text-white font-bold text-xl mx-auto mb-4 shadow-lift">
-            e
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink-900">Create account</h1>
-          <p className="text-ink-500 mt-1 text-sm">Join ezoneshoppi today</p>
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 grid place-items-center text-white font-bold text-xl mx-auto mb-4 shadow-lift">e</div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Create account</h1>
+          <p className="text-gray-500 mt-1 text-sm">Join ezoneshoppi today</p>
         </div>
 
         <div className="card p-6 sm:p-8">
-          <form onSubmit={submit} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="label">Full Name</label>
-              <div className="field-wrap">
-                <User size={16} className="icon-l" />
-                <input
-                  type="text"
-                  required
-                  autoComplete="name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="field-il"
-                  placeholder="John Doe"
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="label">Email address</label>
-              <div className="field-wrap">
-                <Mail size={16} className="icon-l" />
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="field-il"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="label">Phone <span className="text-slate-400 font-normal">(optional)</span></label>
-              <div className="field-wrap">
-                <Phone size={16} className="icon-l" />
-                <input
-                  type="tel"
-                  autoComplete="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="field-il"
-                  placeholder="+91 00000 00000"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="label">Password</label>
-              <div className="field-wrap">
-                <Lock size={16} className="icon-l" />
-                <input
-                  type={show ? 'text' : 'password'}
-                  required
-                  autoComplete="new-password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="field-ilr"
-                  placeholder="Minimum 6 characters"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShow(!show)}
-                  className="icon-r hover:text-ink-700 transition-colors"
-                  tabIndex={-1}
-                >
-                  {show ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              disabled={loading}
-              className="btn-primary w-full mt-2 disabled:opacity-60"
-            >
-              {loading ? 'Creating…' : 'Create Account'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-ink-500 mt-5">
+          <GoogleButton onSuccess={onAuthSuccess} />
+          <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-brand-600 font-semibold hover:text-brand-700">
-              Sign in
-            </Link>
+            <Link href="/login" className="text-brand-600 font-semibold hover:text-brand-700">Sign in</Link>
           </p>
         </div>
       </div>

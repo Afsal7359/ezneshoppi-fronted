@@ -1,20 +1,30 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, ShoppingBag, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ShoppingBag, Star, Heart, Eye, GitCompare, ShoppingCart } from 'lucide-react';
 import { useCart, useWishlist } from '@/store';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function ProductCard({ product, priority = false }) {
-  const add = useCart((s) => s.add);
-  const ids = useWishlist((s) => s.ids);
-  const toggle = useWishlist((s) => s.toggle);
-  const liked = ids.includes(product._id);
+  const router  = useRouter();
+  const add     = useCart((s) => s.add);
+  const ids     = useWishlist((s) => s.ids);
+  const toggle  = useWishlist((s) => s.toggle);
+  const liked   = ids.includes(product._id);
+
+  const discountPct =
+    product.discountPercent > 0
+      ? product.discountPercent
+      : product.comparePrice > product.price
+      ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
+      : 0;
 
   const onAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (product.stock === 0) { toast.error('Out of stock'); return; }
     add(product, 1);
     toast.success('Added to cart');
   };
@@ -26,95 +36,121 @@ export default function ProductCard({ product, priority = false }) {
     toast.success(liked ? 'Removed from wishlist' : 'Added to wishlist');
   };
 
+  const onView = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/product/${product.slug}`);
+  };
+
+  const onCompare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard?.writeText(
+      `${window.location.origin}/product/${product.slug}`
+    ).then(() => toast.success('Product link copied!'))
+     .catch(() => toast('Compare: ' + product.name, { icon: '📋' }));
+  };
+
+  const actions = [
+    { icon: ShoppingCart, label: 'Add to cart',  onClick: onAdd,     active: false },
+    { icon: Heart,        label: 'Wishlist',      onClick: onWish,    active: liked },
+    { icon: Eye,          label: 'Quick view',    onClick: onView,    active: false },
+    { icon: GitCompare,   label: 'Copy link',     onClick: onCompare, active: false },
+  ];
+
+  const ActionBtn = ({ icon: Icon, label, onClick, active }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={`w-9 h-9 rounded flex items-center justify-center text-white transition-colors duration-150 shadow
+        ${active && label === 'Wishlist' ? 'bg-red-500 hover:bg-red-600' : 'bg-[#1a3c5e] hover:bg-brand-600'}`}
+    >
+      <Icon size={15} fill={label === 'Wishlist' && active ? 'white' : 'none'} />
+    </button>
+  );
+
   return (
     <Link
       href={`/product/${product.slug}`}
-      className="group card overflow-hidden flex flex-col"
+      className="group flex flex-col bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
     >
-      {/* Image area */}
-      <div className="relative aspect-square bg-gradient-to-br from-peach-50 to-ink-900/[0.02] overflow-hidden">
-        {product.discountPercent > 0 && (
-          <span className="absolute top-2 left-2 z-10 chip bg-brand-600 text-white text-[11px] px-2 py-0.5">
-            -{product.discountPercent}%
+      {/* ── Image ── */}
+      <div className="relative w-full aspect-square bg-gray-50 overflow-hidden">
+        {discountPct > 0 && (
+          <span className="absolute top-2 left-2 z-10 text-[11px] font-bold text-white px-2 py-0.5 rounded-sm"
+            style={{ backgroundColor: '#8bc34a' }}>
+            -{discountPct}%
           </span>
         )}
 
         {product.images?.[0] ? (
-          <Image
-            src={product.images[0]}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-500 will-change-transform"
-            priority={priority}
-          />
+          <>
+            {/* Primary image */}
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+              priority={priority}
+            />
+            {/* Secondary image — stacked on top, fades in on hover to cover the first */}
+            {product.images[1] && (
+              <Image
+                src={product.images[1]}
+                alt={`${product.name} – alternate view`}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-contain p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              />
+            )}
+          </>
         ) : (
-          <div className="absolute inset-0 grid place-items-center text-ink-300">
-            <ShoppingBag size={32} />
+          <div className="absolute inset-0 grid place-items-center text-gray-300">
+            <ShoppingBag size={36} />
           </div>
         )}
 
-        {/* Wishlist — always visible, top-right corner */}
-        <button
-          onClick={onWish}
-          aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
-          className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full grid place-items-center transition-all duration-200 shadow-sm ${
-            liked
-              ? 'bg-red-500 text-white scale-110'
-              : 'bg-white/90 backdrop-blur-sm text-ink-400 hover:text-red-500 hover:bg-white'
-          }`}
-        >
-          <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
-        </button>
       </div>
 
-      {/* Info */}
-      <div className="p-3 sm:p-4 flex flex-col gap-1 flex-1">
-        {product.brand && (
-          <p className="text-[11px] text-ink-400 uppercase tracking-wide font-medium truncate">
-            {product.brand}
-          </p>
-        )}
-        <h3 className="text-sm font-medium line-clamp-2 leading-snug text-ink-900">
-          {product.name}
-        </h3>
-
-        {product.rating > 0 && (
-          <div className="flex items-center gap-1 mt-0.5">
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  size={11}
-                  fill={i <= Math.round(product.rating) ? '#f59e0b' : 'none'}
-                  stroke={i <= Math.round(product.rating) ? '#f59e0b' : '#cbd5e1'}
-                />
-              ))}
-            </div>
-            <span className="text-[11px] text-ink-400">({product.numReviews})</span>
-          </div>
-        )}
-
-        <div className="flex items-baseline gap-1.5 mt-1">
-          <span className="font-bold text-base sm:text-lg leading-none">{formatPrice(product.price)}</span>
-          {product.comparePrice > product.price && (
-            <span className="text-xs text-ink-400 line-through">{formatPrice(product.comparePrice)}</span>
+      {/* ── Info ── */}
+      <div className="p-3 flex flex-col gap-1.5">
+        <div className="flex items-center gap-0.5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Star
+              key={i}
+              size={12}
+              fill={product.rating >= i ? '#f59e0b' : 'none'}
+              stroke={product.rating >= i ? '#f59e0b' : '#d1d5db'}
+              strokeWidth={1.5}
+            />
+          ))}
+          {product.numReviews > 0 && (
+            <span className="text-[10px] text-gray-400 ml-1">({product.numReviews})</span>
           )}
         </div>
 
-        {/* Add to cart — always visible, no hover required */}
-        <button
-          onClick={onAdd}
-          disabled={product.stock === 0}
-          className={`mt-2 w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-[0.97] ${
-            product.stock === 0
-              ? 'bg-ink-900/5 text-ink-400 cursor-not-allowed'
-              : 'bg-ink-900 text-white hover:bg-brand-600'
-          }`}
-        >
-          <ShoppingBag size={13} />
-          {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-        </button>
+        <h3 className="text-[13px] text-gray-800 leading-snug line-clamp-3 min-h-[3.6em]">
+          {product.name}
+        </h3>
+
+        <div className="flex items-baseline gap-2 mt-0.5">
+          <span className="text-base font-bold text-blue-700">
+            {formatPrice(product.price)}
+          </span>
+          {product.comparePrice > product.price && (
+            <span className="text-xs text-gray-400 line-through">
+              {formatPrice(product.comparePrice)}
+            </span>
+          )}
+        </div>
+
+        {/* Action buttons — always visible on mobile, hover-only on desktop */}
+        <div className="flex items-center gap-1.5 pt-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+          {actions.map((a) => <ActionBtn key={a.label} {...a} />)}
+        </div>
       </div>
     </Link>
   );

@@ -119,9 +119,11 @@ export default function Footer({ settings: initialSettings }) {
 
         <div className="mt-10 sm:mt-16 pt-6 border-t border-white/10 text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>{f.copyright || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}</p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Link href="/privacy" className="hover:text-white transition">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition">Terms</Link>
+            <Link href="/returns" className="hover:text-white transition">Returns</Link>
+            <Link href="/shipping" className="hover:text-white transition">Shipping</Link>
             <Link href="/contact" className="hover:text-white transition">Contact</Link>
           </div>
         </div>
