@@ -29,6 +29,8 @@ export default function AdminSettings() {
 
   const tabs = [
     { k: 'brand', l: 'Brand' },
+    { k: 'announcement', l: 'Announcement' },
+    { k: 'hero', l: 'Hero Banner' },
     { k: 'contact', l: 'Contact' },
     { k: 'social', l: 'Social' },
     { k: 'footer', l: 'Footer' },
@@ -111,6 +113,94 @@ export default function AdminSettings() {
           </div>
         )}
 
+        {tab === 'announcement' && (
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={s.announcement?.enabled ?? true}
+                onChange={(e) => set('announcement', { enabled: e.target.checked })}
+              />
+              <span className="font-medium text-sm">Show Announcement Bar</span>
+            </label>
+            <F label="Announcement Text">
+              <input
+                className="field"
+                value={s.announcement?.text || ''}
+                onChange={(e) => set('announcement', { text: e.target.value })}
+                placeholder="Free shipping on orders over ₹5999 • 2-day returns"
+              />
+            </F>
+            <F label="Background Color">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  className="h-11 w-20 rounded-lg border border-ink-900/10 cursor-pointer"
+                  value={s.announcement?.bgColor || '#000000'}
+                  onChange={(e) => set('announcement', { bgColor: e.target.value })}
+                />
+                <input
+                  className="field flex-1 font-mono text-sm"
+                  value={s.announcement?.bgColor || '#000000'}
+                  onChange={(e) => set('announcement', { bgColor: e.target.value })}
+                  placeholder="#000000"
+                />
+              </div>
+              {/* Preview */}
+              <div
+                className="mt-2 rounded-lg py-2 text-center text-xs text-white font-medium overflow-hidden"
+                style={{ backgroundColor: s.announcement?.bgColor || '#000000' }}
+              >
+                ✦ &nbsp;{s.announcement?.text || 'Preview text here'}&nbsp; ✦
+              </div>
+            </F>
+            <F label="Link (optional — wraps entire bar)">
+              <input
+                className="field"
+                value={s.announcement?.link || ''}
+                onChange={(e) => set('announcement', { link: e.target.value })}
+                placeholder="e.g. /shop"
+              />
+            </F>
+          </div>
+        )}
+
+        {tab === 'hero' && (
+          <div className="space-y-4">
+            <F label="Tag / Badge text">
+              <input className="field" value={s.hero?.tag || ''} onChange={(e) => set('hero', { tag: e.target.value })} placeholder="Hot Deal in This Week" />
+            </F>
+            <F label="Title">
+              <input className="field" value={s.hero?.title || ''} onChange={(e) => set('hero', { title: e.target.value })} placeholder="Main headline" />
+            </F>
+            <F label="Subtitle">
+              <input className="field" value={s.hero?.subtitle || ''} onChange={(e) => set('hero', { subtitle: e.target.value })} placeholder="Supporting text" />
+            </F>
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Price Display (₹)">
+                <input type="number" className="field" value={s.hero?.price || ''} onChange={(e) => set('hero', { price: +e.target.value })} />
+              </F>
+              <F label="Reviews Count">
+                <input type="number" className="field" value={s.hero?.reviewsCount || ''} onChange={(e) => set('hero', { reviewsCount: +e.target.value })} />
+              </F>
+            </div>
+            <F label="Rating (1–5)">
+              <input type="number" min="1" max="5" step="0.1" className="field" value={s.hero?.rating || 4} onChange={(e) => set('hero', { rating: +e.target.value })} />
+            </F>
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Button Text">
+                <input className="field" value={s.hero?.ctaText || ''} onChange={(e) => set('hero', { ctaText: e.target.value })} placeholder="Shop Now" />
+              </F>
+              <F label="Button Link">
+                <input className="field" value={s.hero?.ctaLink || ''} onChange={(e) => set('hero', { ctaLink: e.target.value })} placeholder="/shop" />
+              </F>
+            </div>
+            <F label="Hero Product Image">
+              <ImageUploader multiple={false} images={s.hero?.image} onChange={(v) => set('hero', { image: v })} />
+            </F>
+          </div>
+        )}
+
         {tab === 'contact' && (
           <div className="space-y-3">
             <F label="Email"><input type="email" className="field" value={s.contact?.email || ''} onChange={(e) => set('contact', { email: e.target.value })} /></F>
@@ -124,9 +214,18 @@ export default function AdminSettings() {
           <div className="space-y-3">
             {['facebook', 'instagram', 'twitter', 'youtube', 'linkedin'].map((k) => (
               <F key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
-                <input className="field" value={s.social?.[k] || ''} onChange={(e) => set('social', { [k]: e.target.value })} />
+                <input className="field" placeholder={`https://`} value={s.social?.[k] || ''} onChange={(e) => set('social', { [k]: e.target.value })} />
               </F>
             ))}
+            <F label="WhatsApp Number">
+              <input
+                className="field"
+                placeholder="919876543210 (country code + number, no + or spaces)"
+                value={s.social?.whatsapp || ''}
+                onChange={(e) => set('social', { whatsapp: e.target.value })}
+              />
+              <p className="text-xs text-ink-400 mt-1">Include country code, e.g. 919876543210 for India +91</p>
+            </F>
           </div>
         )}
 
@@ -203,11 +302,34 @@ export default function AdminSettings() {
         )}
 
         {tab === 'payment' && (
-          <div className="space-y-3">
-            <label className="flex items-center gap-2"><input type="checkbox" checked={s.payment?.razorpayEnabled} onChange={(e) => set('payment', { razorpayEnabled: e.target.checked })} /> Enable Razorpay</label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={s.payment?.codEnabled} onChange={(e) => set('payment', { codEnabled: e.target.checked })} /> Enable Cash on Delivery</label>
-            <F label="Currency"><input className="field" value={s.payment?.currency || 'INR'} onChange={(e) => set('payment', { currency: e.target.value })} /></F>
-            <F label="Currency Symbol"><input className="field" value={s.payment?.currencySymbol || '₹'} onChange={(e) => set('payment', { currencySymbol: e.target.value })} /></F>
+          <div className="space-y-4">
+            <p className="text-xs text-ink-500 mb-1">Enable the payment methods you want to offer at checkout. At least one should be active.</p>
+            <label className="flex items-center gap-3 p-3 rounded-xl border border-ink-900/10 cursor-pointer hover:bg-ink-900/[0.02]">
+              <input type="checkbox" checked={s.payment?.razorpayEnabled ?? true} onChange={(e) => set('payment', { razorpayEnabled: e.target.checked })} />
+              <div>
+                <p className="font-medium text-sm">Razorpay</p>
+                <p className="text-xs text-ink-400">Credit/Debit Card, UPI, Net Banking, Wallets</p>
+              </div>
+            </label>
+            <label className="flex items-center gap-3 p-3 rounded-xl border border-ink-900/10 cursor-pointer hover:bg-ink-900/[0.02]">
+              <input type="checkbox" checked={s.payment?.codEnabled ?? true} onChange={(e) => set('payment', { codEnabled: e.target.checked })} />
+              <div>
+                <p className="font-medium text-sm">Cash on Delivery</p>
+                <p className="text-xs text-ink-400">Customer pays when they receive the order</p>
+              </div>
+            </label>
+            <label className="flex items-center gap-3 p-3 rounded-xl border border-ink-900/10 cursor-pointer hover:bg-ink-900/[0.02]">
+              <input type="checkbox" checked={s.payment?.whatsappEnabled ?? false} onChange={(e) => set('payment', { whatsappEnabled: e.target.checked })} />
+              <div>
+                <p className="font-medium text-sm">WhatsApp Order</p>
+                <p className="text-xs text-ink-400">Order details sent to your WhatsApp number (configure number in Social tab)</p>
+              </div>
+            </label>
+            <div className="h-px bg-ink-900/10" />
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Currency"><input className="field" value={s.payment?.currency || 'INR'} onChange={(e) => set('payment', { currency: e.target.value })} /></F>
+              <F label="Currency Symbol"><input className="field" value={s.payment?.currencySymbol || '₹'} onChange={(e) => set('payment', { currencySymbol: e.target.value })} /></F>
+            </div>
           </div>
         )}
 

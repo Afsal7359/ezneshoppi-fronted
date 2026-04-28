@@ -2,6 +2,7 @@
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
+import WhatsAppButton from './WhatsAppButton';
 
 export default function ConditionalLayout({ settings, children }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function ConditionalLayout({ settings, children }) {
         <Header settings={settings} />
         <main className="min-h-[70vh]">{children}</main>
         <Footer settings={settings} />
+        <WhatsAppButton />
       </>
     );
   }

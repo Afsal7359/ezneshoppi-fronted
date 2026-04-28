@@ -13,7 +13,7 @@ export default function HeroBanner({ hero }) {
       <div className="absolute top-0 right-0 w-96 h-96 bg-brand-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-peach-300/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-      <div className="container-x relative grid lg:grid-cols-2 gap-8 lg:gap-12 items-center py-12 lg:py-24">
+      <div className="container-x relative grid lg:grid-cols-2 gap-8 lg:gap-16 items-center py-14 lg:py-28 xl:py-32">
         {/* Left — Text */}
         <div className="animate-fadeUp text-center lg:text-left order-2 lg:order-1">
           {hero.tag && (
@@ -57,8 +57,8 @@ export default function HeroBanner({ hero }) {
         </div>
 
         {/* Right — Image or Fallback */}
-        <div className="relative order-1 lg:order-2">
-          <div className="relative mx-auto lg:ml-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg aspect-square">
+        <div className="relative order-1 lg:order-2 flex items-center justify-center">
+          <div className="relative w-full max-w-[340px] sm:max-w-[480px] lg:max-w-none h-[280px] sm:h-[400px] lg:h-[500px] xl:h-[580px]">
             {hero.price && (
               <div className="absolute top-0 left-0 z-20 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white shadow-lift grid place-items-center text-center -translate-x-2 -translate-y-2">
                 <div>

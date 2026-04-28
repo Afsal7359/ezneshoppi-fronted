@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { User, Package, Heart, MapPin, LogOut } from 'lucide-react';
 import { useAuth } from '@/store';
 
@@ -9,18 +9,25 @@ export default function AccountLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, token, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  // After mount, Zustand has already read from localStorage (synchronous storage).
+  // Only then is it safe to check auth — prevents false redirect on reload.
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     if (!token) router.push('/login');
-  }, [token, router]);
+  }, [mounted, token, router]);
 
-  if (!user) return <div className="container-x py-20 text-center">Loading…</div>;
+  if (!mounted) return <div className="container-x py-20 text-center text-ink-400">Loading…</div>;
+  if (!user) return <div className="container-x py-20 text-center text-ink-400">Loading…</div>;
 
   const links = [
-    { href: '/account/profile', label: 'Profile', icon: User },
-    { href: '/account/orders', label: 'Orders', icon: Package },
-    { href: '/account/wishlist', label: 'Wishlist', icon: Heart },
-    { href: '/account/addresses', label: 'Addresses', icon: MapPin },
+    { href: '/account/profile',   label: 'Profile',    icon: User },
+    { href: '/account/orders',    label: 'Orders',     icon: Package },
+    { href: '/account/wishlist',  label: 'Wishlist',   icon: Heart },
+    { href: '/account/addresses', label: 'Addresses',  icon: MapPin },
   ];
 
   return (
@@ -40,7 +47,9 @@ export default function AccountLayout({ children }) {
             <Link
               key={l.href}
               href={l.href}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm ${pathname?.startsWith(l.href) ? 'bg-brand-50 text-brand-700 font-medium' : 'hover:bg-ink-900/5'}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm ${
+                pathname?.startsWith(l.href) ? 'bg-brand-50 text-brand-700 font-medium' : 'hover:bg-ink-900/5'
+              }`}
             >
               <l.icon size={16} /> {l.label}
             </Link>

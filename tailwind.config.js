@@ -43,10 +43,12 @@ export default {
       keyframes: {
         floaty: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
         fadeUp: { '0%': { opacity: 0, transform: 'translateY(12px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+        marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
       },
       animation: {
         floaty: 'floaty 6s ease-in-out infinite',
         fadeUp: 'fadeUp 0.6s ease-out both',
+        marquee: 'marquee 30s linear infinite',
       },
     },
   },
