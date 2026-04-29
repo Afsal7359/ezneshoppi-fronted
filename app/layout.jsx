@@ -22,11 +22,16 @@ const getSettings = cache(async () => {
 export async function generateMetadata() {
   const data = await getSettings();
   const s = data?.settings || data;
+  // Use dedicated favicon if set, otherwise fall back to logo
+  const faviconUrl = s?.favicon || s?.logo || null;
   return {
     title: { default: s?.siteName || 'ezoneshoppi', template: `%s | ${s?.siteName || 'ezoneshoppi'}` },
     description: s?.tagline || s?.seo?.metaDescription || 'Premium electronics store',
     keywords: s?.seo?.metaKeywords || [],
     openGraph: { images: [s?.seo?.ogImage].filter(Boolean) },
+    icons: faviconUrl
+      ? { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl }
+      : undefined,
   };
 }
 

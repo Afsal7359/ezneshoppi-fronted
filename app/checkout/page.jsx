@@ -136,7 +136,7 @@ export default function CheckoutPage() {
           modal: { ondismiss: () => setLoading(false) },
         }).open();
       } else if (paymentMethod === 'whatsapp') {
-        const waNumber = (settings?.social?.whatsapp || '').replace(/\D/g, '');
+        const waNumber = (settings?.social?.whatsapp || '919495517763').replace(/\D/g, '');
         const waUrl = `https://wa.me/${waNumber}?text=${buildWhatsAppMessage(data.order)}`;
         clear();
         toast.success('Order placed! Opening WhatsApp…');

@@ -3,20 +3,19 @@ import { useEffect, useState } from 'react';
 import { API } from '@/lib/api';
 
 export default function WhatsAppButton() {
-  const [number, setNumber] = useState('');
+  const DEFAULT_WA = '919495517763';
+  const [number, setNumber] = useState(DEFAULT_WA);
 
   useEffect(() => {
     API.settings()
       .then(({ data }) => {
         const n = data.settings?.social?.whatsapp;
-        if (n) setNumber(n.replace(/\D/g, ''));
+        setNumber((n || DEFAULT_WA).replace(/\D/g, ''));
       })
       .catch(() => {});
   }, []);
 
-  // Always render — if no number saved, clicking opens wa.me with no number
-  // (admin should set it in Settings → Social → WhatsApp)
-  const href = number ? `https://wa.me/${number}` : 'https://wa.me/';
+  const href = `https://wa.me/${number}`;
 
   return (
     <a
