@@ -29,11 +29,11 @@ export async function generateMetadata() {
     openGraph: { images: [s?.seo?.ogImage].filter(Boolean) },
     icons: {
       icon: [
-        { url: '/favicon.ico' },
-        { url: '/images/logo.jpeg', type: 'image/jpeg' },
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
       ],
       shortcut: '/favicon.ico',
-      apple: '/images/logo.jpeg',
+      apple: '/apple-touch-icon.png',
     },
   };
 }
