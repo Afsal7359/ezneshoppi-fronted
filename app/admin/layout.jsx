@@ -17,6 +17,8 @@ import {
   FolderTree,
   Menu,
   X,
+  Star,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useAuth } from '@/store';
 import { API } from '@/lib/api';
@@ -60,8 +62,10 @@ export default function AdminLayout({ children }) {
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/categories', label: 'Categories', icon: FolderTree },
     { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+    { href: '/admin/transactions', label: 'Transactions', icon: ArrowLeftRight },
     { href: '/admin/users', label: 'Customers', icon: Users },
     { href: '/admin/coupons', label: 'Coupons', icon: Percent },
+    { href: '/admin/reviews', label: 'Reviews', icon: Star },
     { href: '/admin/blog', label: 'Blog', icon: FileText },
     { href: '/admin/content', label: 'Content (Homepage)', icon: Palette },
     { href: '/admin/settings', label: 'Settings', icon: Settings },

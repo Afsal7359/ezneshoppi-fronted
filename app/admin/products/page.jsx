@@ -6,6 +6,7 @@ import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { API } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import Pagination from '@/components/admin/Pagination';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -13,11 +14,16 @@ export default function AdminProducts() {
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const load = () => {
     setLoading(true);
-    API.products({ q, page, limit: 20, onlyActive: false })
-      .then(({ data }) => { setProducts(data.items || []); setPages(data.pages || 1); })
+    API.products({ q, page, limit: 25, onlyActive: false })
+      .then(({ data }) => {
+        setProducts(data.items || []);
+        setPages(data.pages || 1);
+        setTotal(data.total || 0);
+      })
       .finally(() => setLoading(false));
   };
 
@@ -33,14 +39,18 @@ export default function AdminProducts() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <h1 className="text-3xl font-bold">Products</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Products</h1>
+          <p className="text-sm text-ink-500 mt-0.5">{loading ? '…' : `${total} product${total !== 1 ? 's' : ''}`}</p>
+        </div>
         <Link href="/admin/products/new" className="btn-primary"><Plus size={16} /> Add Product</Link>
       </div>
 
       <div className="card p-4 mb-4">
-        <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="field pl-10" />
+        <div className="field-wrap">
+          <Search size={16} className="icon-l" />
+          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }}
+            placeholder="Search products…" className="field-il" />
         </div>
       </div>
 
@@ -60,6 +70,8 @@ export default function AdminProducts() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={6} className="p-10 text-center text-ink-500">Loading…</td></tr>
+              ) : products.length === 0 ? (
+                <tr><td colSpan={6} className="p-10 text-center text-ink-500">No products found.</td></tr>
               ) : products.map((p) => (
                 <tr key={p._id} className="border-t border-ink-900/5 hover:bg-ink-900/[0.02]">
                   <td className="p-3">
@@ -98,15 +110,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {pages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          {Array.from({ length: pages }).map((_, i) => (
-            <button key={i} onClick={() => setPage(i + 1)} className={`w-9 h-9 rounded-full text-sm ${page === i + 1 ? 'bg-ink-900 text-white' : 'bg-white border border-ink-900/10'}`}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
+      <Pagination page={page} pages={pages} onChange={setPage} />
     </div>
   );
 }

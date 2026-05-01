@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/store';
 import { API } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -35,7 +35,7 @@ function GoogleButton({ onSuccess }) {
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
       scope: 'openid email profile',
       callback: async (resp) => {
-        if (resp.error) { toast.error('Google sign-in cancelled'); setLoading(false); return; }
+        if (resp.error) { toast.error('Google sign-up cancelled'); setLoading(false); return; }
         try {
           const { data } = await API.googleAuth(resp.access_token);
           onSuccess(data);
@@ -64,15 +64,174 @@ function GoogleButton({ onSuccess }) {
   );
 }
 
+function EmailPasswordForm({ onSuccess }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!name || !email || !password) { toast.error('All fields are required'); return; }
+    if (password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    setLoading(true);
+    try {
+      const { data } = await API.register({ name, email, password });
+      onSuccess(data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <label className="label">Full Name</label>
+        <div className="field-wrap">
+          <UserIcon size={16} className="icon-l" />
+          <input className="field-il" placeholder="Your full name" value={name}
+            onChange={(e) => setName(e.target.value)} required />
+        </div>
+      </div>
+      <div>
+        <label className="label">Email address</label>
+        <div className="field-wrap">
+          <Mail size={16} className="icon-l" />
+          <input className="field-il" type="email" placeholder="you@example.com" value={email}
+            onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+      </div>
+      <div>
+        <label className="label">Password</label>
+        <div className="field-wrap">
+          <Lock size={16} className="icon-l" />
+          <input className="field-ilr" type={showPass ? 'text' : 'password'} placeholder="Min 6 characters" value={password}
+            onChange={(e) => setPassword(e.target.value)} required />
+          <button type="button" onClick={() => setShowPass(!showPass)} className="icon-r hover:text-ink-700">
+            {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+          </button>
+        </div>
+      </div>
+      <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+        {loading ? <><Loader2 size={16} className="animate-spin inline mr-2" />Creating account…</> : 'Create Account'}
+      </button>
+    </form>
+  );
+}
+
+function OtpForm({ onSuccess }) {
+  const [step, setStep] = useState('email'); // 'email' | 'otp'
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  const sendOtp = async (e) => {
+    e?.preventDefault();
+    if (!email) { toast.error('Enter your email'); return; }
+    setLoading(true);
+    try {
+      await API.sendOtp(email);
+      toast.success('OTP sent to your email');
+      setStep('otp');
+      setCountdown(60);
+      setIsNewUser(true); // assume new until verified
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp) { toast.error('Enter the OTP'); return; }
+    setLoading(true);
+    try {
+      const { data } = await API.verifyOtp({ email, otp, name: name || undefined });
+      onSuccess(data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === 'email') {
+    return (
+      <form onSubmit={sendOtp} className="space-y-4">
+        <div>
+          <label className="label">Full Name</label>
+          <div className="field-wrap">
+            <UserIcon size={16} className="icon-l" />
+            <input className="field-il" placeholder="Your full name" value={name}
+              onChange={(e) => setName(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label className="label">Email address</label>
+          <div className="field-wrap">
+            <Mail size={16} className="icon-l" />
+            <input className="field-il" type="email" placeholder="you@example.com" value={email}
+              onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+        </div>
+        <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+          {loading ? <><Loader2 size={16} className="animate-spin inline mr-2" />Sending…</> : 'Send OTP'}
+        </button>
+      </form>
+    );
+  }
+
+  return (
+    <form onSubmit={verifyOtp} className="space-y-4">
+      <p className="text-sm text-ink-500">OTP sent to <strong>{email}</strong></p>
+      <div>
+        <label className="label">Enter OTP</label>
+        <input className="field text-center text-2xl tracking-[0.5em] font-bold" maxLength={6}
+          placeholder="------" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} required />
+      </div>
+      <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+        {loading ? <><Loader2 size={16} className="animate-spin inline mr-2" />Verifying…</> : 'Verify & Create Account'}
+      </button>
+      <div className="text-center">
+        {countdown > 0 ? (
+          <p className="text-xs text-ink-500">Resend in {countdown}s</p>
+        ) : (
+          <button type="button" onClick={sendOtp} className="text-xs text-brand-600 hover:text-brand-700 font-medium">Resend OTP</button>
+        )}
+        <button type="button" onClick={() => { setStep('email'); setOtp(''); }} className="block mx-auto mt-1 text-xs text-ink-500 hover:text-ink-700">Change email</button>
+      </div>
+    </form>
+  );
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setAuth } = useAuth();
+  const [tab, setTab] = useState('password');
 
   const onAuthSuccess = (data) => {
     setAuth(data.user, data.token);
     toast.success('Welcome to ezoneshoppi!');
     router.push('/');
   };
+
+  const tabs = [
+    { id: 'password', label: 'Email & Password' },
+    { id: 'otp', label: 'OTP / Passwordless' },
+  ];
 
   return (
     <div className="min-h-screen grid place-items-center py-10 px-4 bg-gradient-to-br from-peach-50 to-white">
@@ -83,9 +242,28 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-1 text-sm">Join ezoneshoppi today</p>
         </div>
 
-        <div className="card p-6 sm:p-8">
+        <div className="card p-6 sm:p-8 space-y-5">
           <GoogleButton onSuccess={onAuthSuccess} />
-          <p className="text-center text-sm text-gray-500 mt-6">
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-ink-900/10" />
+            <span className="text-xs text-ink-400 font-medium">or register with email</span>
+            <div className="flex-1 h-px bg-ink-900/10" />
+          </div>
+
+          <div className="flex gap-1 bg-ink-900/[0.04] rounded-xl p-1">
+            {tabs.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${tab === t.id ? 'bg-white shadow text-ink-900' : 'text-ink-500 hover:text-ink-700'}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'password' && <EmailPasswordForm onSuccess={onAuthSuccess} />}
+          {tab === 'otp' && <OtpForm onSuccess={onAuthSuccess} />}
+
+          <p className="text-center text-sm text-gray-500">
             Already have an account?{' '}
             <Link href="/login" className="text-brand-600 font-semibold hover:text-brand-700">Sign in</Link>
           </p>

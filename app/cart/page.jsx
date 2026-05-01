@@ -22,31 +22,35 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container-x py-10">
-      <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
-      <div className="grid lg:grid-cols-[1fr_380px] gap-8">
-        <div className="space-y-4">
+    <div className="container-x py-6 md:py-10">
+      <h1 className="text-2xl sm:text-4xl font-bold mb-6 md:mb-8">Shopping Cart</h1>
+      <div className="grid lg:grid-cols-[1fr_380px] gap-6 md:gap-8">
+        <div className="space-y-3 md:space-y-4">
           {items.map((it) => (
-            <div key={it.key} className="card p-4 flex gap-4 items-center">
-              <div className="relative w-24 h-24 rounded-xl bg-ink-900/5 shrink-0 overflow-hidden">
-                {it.image && <Image src={it.image} alt={it.name} fill className="object-cover" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <Link href={`/product/${it.slug}`} className="font-medium hover:text-brand-600 line-clamp-1">
-                  {it.name}
-                </Link>
-                <p className="text-lg font-bold mt-1">{formatPrice(it.price)}</p>
-              </div>
-              <div className="flex items-center border border-ink-900/10 rounded-full">
-                <button onClick={() => update(it.key, it.quantity - 1)} className="w-9 h-9 grid place-items-center rounded-l-full hover:bg-ink-900/5"><Minus size={12} /></button>
-                <span className="w-8 text-center text-sm">{it.quantity}</span>
-                <button onClick={() => update(it.key, it.quantity + 1)} className="w-9 h-9 grid place-items-center rounded-r-full hover:bg-ink-900/5"><Plus size={12} /></button>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="font-bold">{formatPrice(it.price * it.quantity)}</p>
-                <button onClick={() => remove(it.key)} className="text-xs text-red-500 hover:underline mt-1 flex items-center gap-1 ml-auto">
-                  <Trash2 size={12} /> Remove
-                </button>
+            <div key={it.key} className="card p-3 sm:p-4">
+              <div className="flex gap-3 sm:gap-4">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-ink-900/5 shrink-0 overflow-hidden">
+                  {it.image && <Image src={it.image} alt={it.name} fill className="object-cover" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/product/${it.slug}`} className="font-medium hover:text-brand-600 line-clamp-2 text-sm sm:text-base">
+                    {it.name}
+                  </Link>
+                  <p className="text-base sm:text-lg font-bold mt-0.5">{formatPrice(it.price)}</p>
+                  <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
+                    <div className="flex items-center border border-ink-900/10 rounded-full bg-white">
+                      <button onClick={() => update(it.key, it.quantity - 1)} className="w-8 h-8 grid place-items-center rounded-l-full hover:bg-ink-900/5"><Minus size={12} /></button>
+                      <span className="w-7 text-center text-sm">{it.quantity}</span>
+                      <button onClick={() => update(it.key, it.quantity + 1)} className="w-8 h-8 grid place-items-center rounded-r-full hover:bg-ink-900/5"><Plus size={12} /></button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <p className="font-bold text-sm sm:text-base">{formatPrice(it.price * it.quantity)}</p>
+                      <button onClick={() => remove(it.key)} className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1">
+                        <Trash2 size={13} /> <span className="hidden sm:inline">Remove</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

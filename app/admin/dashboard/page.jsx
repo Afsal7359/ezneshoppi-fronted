@@ -16,10 +16,10 @@ export default function AdminDashboard() {
   if (!stats) return <div className="p-6">Loading…</div>;
 
   const cards = [
-    { t: 'Revenue', v: formatPrice(stats.revenue), i: DollarSign, c: 'from-green-500 to-emerald-600' },
-    { t: 'Orders', v: stats.ordersCount, i: ShoppingBag, c: 'from-brand-500 to-brand-700' },
-    { t: 'Products', v: stats.productsCount, i: Package, c: 'from-purple-500 to-fuchsia-600' },
-    { t: 'Customers', v: stats.usersCount, i: Users, c: 'from-amber-500 to-orange-600' },
+    { t: 'Revenue', v: formatPrice(stats.revenue), sub: 'from paid orders', i: DollarSign, c: 'from-green-500 to-emerald-600' },
+    { t: 'Paid Orders', v: stats.paidOrders, sub: `of ${stats.ordersCount} total`, i: ShoppingBag, c: 'from-brand-500 to-brand-700' },
+    { t: 'Products', v: stats.productsCount, sub: 'in catalogue', i: Package, c: 'from-purple-500 to-fuchsia-600' },
+    { t: 'Customers', v: stats.usersCount, sub: 'registered', i: Users, c: 'from-amber-500 to-orange-600' },
   ];
 
   return (
@@ -39,6 +39,7 @@ export default function AdminDashboard() {
             <c.i size={20} className="text-ink-500 relative" />
             <p className="text-xs text-ink-500 mt-3 relative">{c.t}</p>
             <p className="text-2xl font-bold relative">{c.v}</p>
+            {c.sub && <p className="text-xs text-ink-400 relative mt-0.5">{c.sub}</p>}
           </div>
         ))}
       </div>

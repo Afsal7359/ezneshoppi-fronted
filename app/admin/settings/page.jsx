@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Save, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Save, Plus, Trash2, Loader2, Copy, Check } from 'lucide-react';
 import { API } from '@/lib/api';
 import ImageUploader from '@/components/admin/ImageUploader';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ export default function AdminSettings() {
   const [s, setS] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('brand');
+  const [webhookCopied, setWebhookCopied] = useState(false);
 
   useEffect(() => {
     API.settings().then(({ data }) => setS(data.settings));
@@ -329,6 +330,39 @@ export default function AdminSettings() {
             <div className="grid grid-cols-2 gap-3">
               <F label="Currency"><input className="field" value={s.payment?.currency || 'INR'} onChange={(e) => set('payment', { currency: e.target.value })} /></F>
               <F label="Currency Symbol"><input className="field" value={s.payment?.currencySymbol || '₹'} onChange={(e) => set('payment', { currencySymbol: e.target.value })} /></F>
+            </div>
+
+            <div className="h-px bg-ink-900/10" />
+            <div>
+              <p className="font-medium text-sm mb-1">Razorpay Webhook URL</p>
+              <p className="text-xs text-ink-500 mb-3">
+                Add this URL in your{' '}
+                <a href="https://dashboard.razorpay.com/app/webhooks" target="_blank" rel="noreferrer" className="text-brand-600 underline">
+                  Razorpay Dashboard → Webhooks
+                </a>
+                {' '}to automatically mark orders as paid when payment is captured.
+                Enable the <strong>payment.captured</strong> and <strong>payment.failed</strong> events.
+              </p>
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-ink-900/[0.04] border border-ink-900/10">
+                <code className="flex-1 text-xs font-mono text-ink-700 break-all select-all">
+                  {(process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com') + '/api/payments/webhook'}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText((process.env.NEXT_PUBLIC_SITE_URL || '') + '/api/payments/webhook');
+                    setWebhookCopied(true);
+                    setTimeout(() => setWebhookCopied(false), 2000);
+                  }}
+                  className="shrink-0 p-2 rounded-lg hover:bg-ink-900/10 transition text-ink-500"
+                  title="Copy webhook URL"
+                >
+                  {webhookCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                </button>
+              </div>
+              <p className="text-xs text-ink-400 mt-2">
+                Also set <code className="font-mono bg-ink-900/5 px-1 rounded">RAZORPAY_WEBHOOK_SECRET</code> in your backend <code className="font-mono bg-ink-900/5 px-1 rounded">.env</code> to the secret shown in Razorpay's webhook settings.
+              </p>
             </div>
           </div>
         )}

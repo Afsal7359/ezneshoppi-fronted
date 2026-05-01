@@ -166,9 +166,9 @@ export default function CheckoutPage() {
   const isWhatsApp = paymentMethod === 'whatsapp';
 
   return (
-    <div className="container-x py-8 md:py-10">
-      <h1 className="text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
-      <div className="grid lg:grid-cols-[1fr_400px] gap-8">
+    <div className="container-x py-6 md:py-10">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8">Checkout</h1>
+      <div className="grid lg:grid-cols-[1fr_400px] gap-6 md:gap-8">
         <div className="space-y-6">
 
           {/* Shipping Address */}
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <aside className="card p-6 h-fit lg:sticky lg:top-24">
+        <aside className="card p-4 sm:p-6 h-fit lg:sticky lg:top-24">
           <h2 className="font-bold text-lg mb-4">Order Summary</h2>
 
           <div className="space-y-3 mb-5">
