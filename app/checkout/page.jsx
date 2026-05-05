@@ -101,8 +101,20 @@ export default function CheckoutPage() {
     return encodeURIComponent(lines);
   };
 
+  const validateVariants = () => {
+    for (const it of items) {
+      if (!it.variantNames?.length) continue;
+      const missing = it.variantNames.filter((n) => !it.variant?.[n]);
+      if (missing.length > 0) {
+        toast.error(`Please choose ${missing.join(' & ')} for "${it.name}"`);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const placeOrder = async () => {
-    if (!validateAddress() || loading) return;
+    if (!validateVariants() || !validateAddress() || loading) return;
     setLoading(true);
     try {
       const payload = {

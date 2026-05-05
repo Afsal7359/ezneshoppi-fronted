@@ -50,6 +50,7 @@ export const useCart = create(
                 price: product.price,
                 quantity,
                 variant,
+                variantNames: (product.variants || []).map((v) => v.name),
                 stock: product.stock,
               },
             ],

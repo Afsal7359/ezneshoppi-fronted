@@ -25,6 +25,10 @@ export default function ProductCard({ product, priority = false }) {
     e.preventDefault();
     e.stopPropagation();
     if (product.stock === 0) { toast.error('Out of stock'); return; }
+    if (product.variants?.length > 0) {
+      router.push(`/product/${product.slug}`);
+      return;
+    }
     add(product, 1);
     toast.success('Added to cart');
   };

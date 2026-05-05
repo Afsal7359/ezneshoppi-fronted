@@ -171,7 +171,7 @@ export default function ProductForm({ initialData, productId }) {
             {/* Preset buttons */}
             <div className="flex flex-wrap gap-2 mb-4">
               <button type="button"
-                onClick={() => addVariantGroup('Size', ['XS', 'S', 'M', 'L', 'XL', 'XXL'])}
+                onClick={() => addVariantGroup('Size', [])}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-dashed border-brand-400 text-brand-600 hover:bg-brand-50 transition">
                 <Ruler size={13} /> + Add Size
               </button>
