@@ -48,7 +48,35 @@ export default async function RootLayout({ children }) {
         <ConditionalLayout settings={settings}>
           {children}
         </ConditionalLayout>
-        <Toaster position="top-center" toastOptions={{ style: { borderRadius: '9999px' } }} />
+        <Toaster
+          position="top-center"
+          gutter={10}
+          containerStyle={{ top: 16 }}
+          toastOptions={{
+            duration: 3000,
+            style: {
+              maxWidth: '380px',
+              borderRadius: '14px',
+              background: '#ffffff',
+              color: '#1e293b',
+              fontSize: '13.5px',
+              fontWeight: '500',
+              padding: '12px 16px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.05)',
+              lineHeight: '1.45',
+            },
+            success: {
+              iconTheme: { primary: '#16a34a', secondary: '#ffffff' },
+            },
+            error: {
+              duration: 4000,
+              iconTheme: { primary: '#dc2626', secondary: '#ffffff' },
+            },
+            loading: {
+              iconTheme: { primary: '#2563eb', secondary: '#ffffff' },
+            },
+          }}
+        />
       </body>
     </html>
   );

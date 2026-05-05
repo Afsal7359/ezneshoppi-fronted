@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { API } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatVariant } from '@/lib/utils';
 import { Check, Package, Truck, Home, Star, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -134,6 +134,15 @@ export default function OrderDetailPage() {
                         </Link>
                       ) : (
                         <p className="font-medium text-sm line-clamp-2">{it.name}</p>
+                      )}
+                      {it.variant && Object.keys(it.variant).length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {Object.entries(it.variant).map(([k, v]) => v && (
+                            <span key={k} className="text-xs px-2 py-0.5 rounded-full bg-ink-900/[0.05] text-ink-600 font-medium">
+                              {k}: {v}
+                            </span>
+                          ))}
+                        </div>
                       )}
                       <p className="text-xs text-ink-500 mt-0.5">{it.quantity} × {formatPrice(it.price)}</p>
                       {/* Write review button */}

@@ -22,6 +22,7 @@ export default function ProductDetail({ slug }) {
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', comment: '' });
   const [copied, setCopied] = useState(false);
+  const [selectedVariants, setSelectedVariants] = useState({});
   const { add } = useCart();
   const wish = useWishlist();
   const { user } = useAuth();
@@ -38,10 +39,17 @@ export default function ProductDetail({ slug }) {
   useEffect(() => {
     setProduct(null);
     setImg(0);
+    setSelectedVariants({});
     stopAuto();
     API.product(slug).then(({ data }) => {
       const p = data.product;
       setProduct(p);
+      // Auto-select any variant that has exactly one option
+      const autoSelected = {};
+      (p.variants || []).forEach((v) => {
+        if (v.options.length === 1) autoSelected[v.name] = v.options[0];
+      });
+      if (Object.keys(autoSelected).length) setSelectedVariants(autoSelected);
       Promise.all([
         API.relatedProducts(p._id),
         API.productReviews(p._id),
@@ -98,10 +106,30 @@ export default function ProductDetail({ slug }) {
 
   const images = product.images || [];
   const liked = wish.has(product._id);
+  const variants = product.variants || [];
+  const hasVariants = variants.length > 0;
+
+  const isCssColor = (str) => {
+    if (!str) return false;
+    const s = new Option().style;
+    s.color = str;
+    return s.color !== '';
+  };
+  const isColorGroup = (name) => name.toLowerCase() === 'color' || name.toLowerCase() === 'colour';
+
+  const allVariantsSelected = !hasVariants || variants.every((v) => selectedVariants[v.name]);
 
   const onAdd = () => {
-    add(product, qty);
-    toast.success(`${qty} × ${product.name} added`);
+    if (!allVariantsSelected) {
+      const missing = variants.filter((v) => !selectedVariants[v.name]).map((v) => v.name);
+      toast.error(`Please select: ${missing.join(', ')}`);
+      return;
+    }
+    add(product, qty, hasVariants ? selectedVariants : null);
+    const variantStr = hasVariants
+      ? ' (' + Object.entries(selectedVariants).map(([k, v]) => `${k}: ${v}`).join(', ') + ')'
+      : '';
+    toast.success(`${qty} × ${product.name}${variantStr} added`);
   };
 
   const shareProduct = async () => {
@@ -284,6 +312,83 @@ export default function ProductDetail({ slug }) {
             )}
           </div>
 
+          {/* ── Variant selectors ── */}
+          {hasVariants && (
+            <div className="mt-5 space-y-4">
+              {variants.map((v) => {
+                const isColor = isColorGroup(v.name);
+                const selected = selectedVariants[v.name];
+                return (
+                  <div key={v.name}>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-sm font-semibold text-ink-800">{v.name}</span>
+                      {selected && (
+                        <span className="text-xs text-ink-500">
+                          {isColor ? (
+                            <span className="flex items-center gap-1">
+                              {isCssColor(selected) && (
+                                <span className="w-3 h-3 rounded-full border border-black/10 inline-block"
+                                  style={{ backgroundColor: selected }} />
+                              )}
+                              {selected}
+                            </span>
+                          ) : selected}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {v.options.map((opt) => {
+                        const active = selected === opt;
+                        if (isColor) {
+                          const hasColor = isCssColor(opt);
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              title={opt}
+                              onClick={() => setSelectedVariants((s) => ({ ...s, [v.name]: opt }))}
+                              className={`relative w-9 h-9 rounded-full border-2 transition-all flex items-center justify-center ${
+                                active
+                                  ? 'border-brand-600 shadow-md scale-110'
+                                  : 'border-transparent hover:border-ink-300 hover:scale-105'
+                              }`}
+                            >
+                              {hasColor ? (
+                                <span className="w-7 h-7 rounded-full border border-black/10"
+                                  style={{ backgroundColor: opt }} />
+                              ) : (
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
+                                  active ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-700'
+                                }`}>{opt}</span>
+                              )}
+                              {active && hasColor && (
+                                <Check size={12} className="absolute text-white drop-shadow-sm" />
+                              )}
+                            </button>
+                          );
+                        }
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setSelectedVariants((s) => ({ ...s, [v.name]: opt }))}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
+                              active
+                                ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
+                                : 'border-ink-900/15 bg-white text-ink-700 hover:border-brand-400 hover:text-brand-600'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-3 mt-6">
             <div className="flex items-center border border-ink-900/10 rounded-full bg-white">
               <button
@@ -303,9 +408,12 @@ export default function ProductDetail({ slug }) {
             <button
               onClick={onAdd}
               disabled={product.stock === 0}
-              className="btn-dark flex-1 sm:flex-none sm:min-w-[160px] disabled:opacity-50 flex items-center justify-center gap-2"
+              className={`flex-1 sm:flex-none sm:min-w-[160px] flex items-center justify-center gap-2 btn-dark disabled:opacity-50 ${
+                !allVariantsSelected && product.stock > 0 ? 'opacity-70' : ''
+              }`}
             >
-              <ShoppingCart size={16} /> Add to Cart
+              <ShoppingCart size={16} />
+              {!allVariantsSelected && product.stock > 0 ? 'Select Options' : 'Add to Cart'}
             </button>
             <button
               onClick={() => wish.toggle(product._id)}

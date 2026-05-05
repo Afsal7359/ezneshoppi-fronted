@@ -42,9 +42,11 @@ export default function AdminBlog() {
 
   const del = async (id) => {
     if (!confirm('Delete this post?')) return;
-    await API.deleteBlog(id);
-    toast.success('Deleted');
-    load();
+    try {
+      await API.deleteBlog(id);
+      toast.success('Deleted');
+      load();
+    } catch { toast.error('Failed to delete'); }
   };
 
   return (

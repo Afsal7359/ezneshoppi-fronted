@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { API } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatVariant } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function AdminOrderDetail() {
@@ -42,15 +42,30 @@ export default function AdminOrderDetail() {
           <div className="card p-5">
             <h2 className="font-bold mb-4">Items</h2>
             <div className="space-y-3">
-              {order.items.map((it, i) => (
-                <div key={i} className="flex gap-3 items-center">
-                  <div className="relative w-16 h-16 rounded-lg bg-ink-900/5 overflow-hidden">
-                    {it.image && <Image src={it.image} alt="" fill className="object-cover" />}
+              {order.items.map((it, i) => {
+                const variantStr = formatVariant(it.variant);
+                return (
+                  <div key={i} className="flex gap-3 items-start py-2 border-b border-ink-900/5 last:border-0">
+                    <div className="relative w-16 h-16 rounded-xl bg-ink-900/5 overflow-hidden shrink-0">
+                      {it.image && <Image src={it.image} alt="" fill className="object-cover" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium leading-snug">{it.name}</p>
+                      {variantStr && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {Object.entries(it.variant || {}).map(([k, v]) => v && (
+                            <span key={k} className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-ink-900/[0.05] text-ink-600 font-medium">
+                              <span className="text-ink-400">{k}:</span> {v}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-ink-500 mt-1">{it.quantity} × {formatPrice(it.price)}</p>
+                    </div>
+                    <p className="font-semibold shrink-0">{formatPrice(it.price * it.quantity)}</p>
                   </div>
-                  <div className="flex-1"><p className="font-medium">{it.name}</p><p className="text-sm text-ink-500">{it.quantity} × {formatPrice(it.price)}</p></div>
-                  <p className="font-semibold">{formatPrice(it.price * it.quantity)}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { CreditCard, Truck, Tag, Check, MessageCircle } from 'lucide-react';
 import { useCart, useAuth } from '@/store';
 import { API } from '@/lib/api';
-import { formatPrice, loadScript } from '@/lib/utils';
+import { formatPrice, loadScript, formatVariant } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 const WA_ICON = (
@@ -245,13 +245,16 @@ export default function CheckoutPage() {
 
           <div className="space-y-3 mb-5">
             {items.map((it) => (
-              <div key={it.key} className="flex gap-3 items-center">
+              <div key={it.key} className="flex gap-3 items-start">
                 <div className="relative w-14 h-14 rounded-lg bg-ink-900/5 overflow-hidden shrink-0">
                   {it.image && <Image src={it.image} alt={it.name} fill className="object-cover" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium line-clamp-1">{it.name}</p>
-                  <p className="text-xs text-ink-500">Qty: {it.quantity}</p>
+                  {it.variant && Object.keys(it.variant).length > 0 && (
+                    <p className="text-xs text-ink-500 mt-0.5">{formatVariant(it.variant)}</p>
+                  )}
+                  <p className="text-xs text-ink-500 mt-0.5">Qty: {it.quantity}</p>
                 </div>
                 <p className="text-sm font-semibold shrink-0">{formatPrice(it.price * it.quantity)}</p>
               </div>

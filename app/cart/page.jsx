@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/store';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatVariant } from '@/lib/utils';
 
 export default function CartPage() {
   const { items, update, remove, subtotal } = useCart();
@@ -36,6 +36,15 @@ export default function CartPage() {
                   <Link href={`/product/${it.slug}`} className="font-medium hover:text-brand-600 line-clamp-2 text-sm sm:text-base">
                     {it.name}
                   </Link>
+                  {it.variant && Object.keys(it.variant).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {Object.entries(it.variant).map(([k, v]) => v && (
+                        <span key={k} className="text-xs px-2 py-0.5 rounded-full bg-ink-900/[0.05] text-ink-600 font-medium">
+                          {k}: {v}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <p className="text-base sm:text-lg font-bold mt-0.5">{formatPrice(it.price)}</p>
                   <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
                     <div className="flex items-center border border-ink-900/10 rounded-full bg-white">
